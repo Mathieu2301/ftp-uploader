@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+.ftpconfig
+package-lock.json
+main.exe

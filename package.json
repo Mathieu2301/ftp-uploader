@@ -1,0 +1,22 @@
+{
+  "name": "ftp-uploader",
+  "version": "1.0.0",
+  "description": "Auto upload files to FTP server",
+  "main": "main.js",
+  "bin": "main.js",
+  "scripts": {
+    "start": "node main",
+    "build": "pkg main.js -t win"
+  },
+  "keywords": [
+    "ftp",
+    "client",
+    "auto-upload"
+  ],
+  "author": "Mathieu Colmon",
+  "license": "ISC",
+  "dependencies": {
+    "ftp": "^0.3.10",
+    "node-notifier": "^7.0.0"
+  }
+}
