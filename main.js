@@ -9,24 +9,23 @@ const defaultConfig = {
     password: 'pass',
   },
   blacklist: [
-    '.ftpconfig'
+    '.ftpconfig',
   ],
-  local: "./",
-  remote: "/test/"
+  remote: '/test/',
+  local: '.',
 };
 
-console.log('Loading ./.ftpconfig file');
+console.log('Loading configuration');
 
-if (!fs.existsSync('./.ftpconfig')) initConfigFile("Creating configuration file");
+if (!fs.existsSync('./.ftpconfig')) return initConfigFile("Creating configuration file");
 let config = fs.readFileSync('./.ftpconfig', { encoding: 'utf8' });
 
 try {
   config = JSON.parse(config);
 } catch (error) {
-  throw new Error("Can't parse configuration file");
+  return initConfigFile("Can't parse configuration file");
 }
 
-console.log('Loading configuration');
 Object.keys(defaultConfig).forEach(k => {
   if (!config[k]) return initConfigFile("Invalid '.ftpconfig' file");
 });
@@ -39,16 +38,20 @@ console.log('Connecting to FTP server...');
 c.on('ready', function() {
   console.log('Connected !');
   let lastUpload = 0;
-  fs.watch(config.local, { encoding: 'utf8' }, (event, file) => {
-    if (event != 'change' || lastUpload > Date.now() - 500) return;
+  fs.watch(`./${config.local}`, { encoding: 'utf8' }, (event, file) => {
+    if (
+      event != 'change' ||
+      lastUpload > Date.now() - 500 ||
+      config.blacklist.includes(file)
+    ) return;
     lastUpload = Date.now();
-    file = `${config.local}/${file}`;
+    file = `./${config.local}/${file}`;
     console.log(`Uploading ${file}`);
     fs.readFile(file, { encoding: 'utf8' }, (err, content) => {
       if (err) console.error("Can't read file => ", err.message);
       else c.put(content, `${config.remote}/${file}`, function(err) {
         if (err) {
-          console.error(`Can't upload ${file}`);
+          console.error(`Can't upload ${file} =>`, err.message);
           notify({
             title: 'Error !',
             message: `Can't upload ${file}`,
@@ -76,4 +79,5 @@ function initConfigFile(err_msg = null) {
   if (err_msg) console.error(err_msg);
   if (fs.existsSync('./.ftpconfig')) fs.unlinkSync('./.ftpconfig');
   fs.writeFileSync('./.ftpconfig', JSON.stringify(defaultConfig));
+  setTimeout(() => {}, 5000);
 }
