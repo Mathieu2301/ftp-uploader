@@ -1,6 +1,6 @@
 const Client = require('ftp');
 const fs = require('fs');
-const { notify } = require('node-notifier');
+const notify = function() {}
 
 const defaultConfig = {
   server: {
@@ -28,8 +28,8 @@ try {
 
 console.log('Loading configuration');
 Object.keys(defaultConfig).forEach(k => {
-  if (!config[k]) initConfigFile("Invalid '.ftpconfig' file")
-})
+  if (!config[k]) return initConfigFile("Invalid '.ftpconfig' file");
+});
 
 const c = new Client();
 
@@ -42,21 +42,25 @@ c.on('ready', function() {
   fs.watch(config.local, { encoding: 'utf8' }, (event, file) => {
     if (event != 'change' || lastUpload > Date.now() - 500) return;
     lastUpload = Date.now();
+    file = `${config.local}/${file}`;
     console.log(`Uploading ${file}`);
-    c.put(file, `${config.remote}/${file}`, function(err) {
-      if (err) {
-        console.error(`Can't upload ${file}`);
-        notify({
-          title: 'Error !',
-          message: `Can't upload ${file}`,
-        });
-      } else {
-        console.log(`${file} uploaded !`);
-        notify({
-          title: 'FTP Uploader',
-          message: `${file} uploaded !`,
-        });
-      }
+    fs.readFile(file, { encoding: 'utf8' }, (err, content) => {
+      if (err) console.error("Can't read file => ", err.message);
+      else c.put(content, `${config.remote}/${file}`, function(err) {
+        if (err) {
+          console.error(`Can't upload ${file}`);
+          notify({
+            title: 'Error !',
+            message: `Can't upload ${file}`,
+          });
+        } else {
+          console.log(`${file} uploaded !`);
+          notify({
+            title: 'FTP Uploader',
+            message: `${file} uploaded !`,
+          });
+        }
+      });
     });
   });
 });

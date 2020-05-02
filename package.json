@@ -16,7 +16,6 @@
   "author": "Mathieu Colmon",
   "license": "ISC",
   "dependencies": {
-    "ftp": "^0.3.10",
-    "node-notifier": "^7.0.0"
+    "ftp": "^0.3.10"
   }
 }
