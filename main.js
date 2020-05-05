@@ -31,19 +31,21 @@ Object.keys(defaultConfig).forEach(k => {
 });
 
 const c = new Client();
+let lastUpload = 0;
 
 console.log('Configuration loaded', config);
 console.log('Connecting to FTP server...');
 
-c.on('ready', function() {
+c.once('ready', function() {
   console.log('Connected !');
-  let lastUpload = 0;
+
   fs.watch(`./${config.local}`, { encoding: 'utf8' }, (event, file) => {
     if (
       event != 'change' ||
       lastUpload > Date.now() - 500 ||
       config.blacklist.includes(file)
     ) return;
+    if (!c.connected) c.connect(config.server);
     lastUpload = Date.now();
     file = `./${config.local}/${file}`;
     console.log(`Uploading ${file}`);
